@@ -9,7 +9,7 @@ This is a C project designed to control a fan on Raspberry Pi and Orange Pi (onl
 ### 🔧 Build and install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/FanPiPWM.git
+git clone https://github.com/rsnakin/FanPiPWM.git
 cd FanPiPWM
 mkdir build && cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
