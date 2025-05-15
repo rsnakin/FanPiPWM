@@ -1,0 +1,88 @@
+#include <cstdlib>
+#include <csignal>
+#include <iostream>
+#include <fstream>
+#include <unistd.h>
+#include <cstring>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <ctime>
+#include "shmMem.hpp"
+
+shmMem::shmMem() : pwmStopped(true), readResult(false), writeResult(false) {}
+
+shmMem::~shmMem() = default;
+
+const char* shmMem::getObjName() {
+    return SHARED_MEMORY_OBJECT_NAME;
+}
+
+void shmMem::setFanVersion(const char* version) {
+    snprintf(fanVersion, sizeof(fanVersion), "%5s", version);
+}
+
+void shmMem::read() {
+    int shm = shm_open(SHARED_MEMORY_OBJECT_NAME, O_RDONLY, 0777);
+    if (shm == -1) {
+        readResult = false;
+        return;
+    }
+
+    void* map = mmap(nullptr, SHARED_MEMORY_OBJECT_SIZE, PROT_READ, MAP_SHARED, shm, 0);
+    if (map == MAP_FAILED) {
+        close(shm);
+        readResult = false;
+        return;
+    }
+
+    const char* msg = static_cast<const char*>(map);
+    sscanf(msg, MEMORY_OBJECT_TEMPLATE, &fanmode, &temperature, &pwmRange, &unixTime, &fanPID, fanVersion);
+    snprintf(fanMode, sizeof(fanMode), "%s", getFanMode(fanmode));
+    get_time(unixTime, dataTime);
+
+    munmap(map, SHARED_MEMORY_OBJECT_SIZE);
+    close(shm);
+    readResult = true;
+}
+
+void shmMem::write() {
+    int shm = shm_open(SHARED_MEMORY_OBJECT_NAME, O_CREAT | O_RDWR, 0777);
+    if (shm == -1) {
+        writeResult = false;
+        return;
+    }
+
+    if (ftruncate(shm, SHARED_MEMORY_OBJECT_SIZE) == -1) {
+        close(shm);
+        writeResult = false;
+        return;
+    }
+
+    void* map = mmap(nullptr, SHARED_MEMORY_OBJECT_SIZE, PROT_WRITE, MAP_SHARED, shm, 0);
+    if (map == MAP_FAILED) {
+        close(shm);
+        writeResult = false;
+        return;
+    }
+
+    char* addr = static_cast<char*>(map);
+    int written = snprintf(addr, SHARED_MEMORY_OBJECT_SIZE, MEMORY_OBJECT_TEMPLATE,
+                           b2i(pwmStopped), temperature,
+                           (pwmStopped ? 0 : pwmValue), std::time(nullptr), fanPID, fanVersion);
+    if (written >= 0 && written < SHARED_MEMORY_OBJECT_SIZE) {
+        addr[written] = '\0';
+        writeResult = true;
+    }
+
+    munmap(map, SHARED_MEMORY_OBJECT_SIZE);
+    close(shm);
+}
+
+void shmMem::unlink() {
+    shm_unlink(SHARED_MEMORY_OBJECT_NAME);
+}
+
+void shmMem::get_time(time_t unix_timestamp, char* time_buf) {
+    struct tm ts = *localtime(&unix_timestamp);
+    strftime(time_buf, 21, "%d-%m-%Y %H:%M:%S", &ts);
+}

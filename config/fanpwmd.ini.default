@@ -1,0 +1,17 @@
+[hardware]
+PIN = 1                          ; PIN number (see WiringPi/pins/pins.pdf)
+PWM_RANGE_MAX = 100              ; PWM max range
+PWM_RANGE_MIN = 75               ; PWM min range
+HARDWARE_PWM = true              ; Use hardware PWM RPi PWM-pins: (GPIO12(PIN: 26), GPIO18(PIN 1), GPIO13(PIN 23), GPIO19(PIN 24))
+HARDWARE_PWM_MODE = PWM_MODE_BAL ; PWM_MODE_MS || PWM_MODE_BAL (for Orange PI it does not work)
+INIT_PWM_INTENSITY = 25          ; Initial rise in PWM intensity
+HARDWARE_PWM_CLOCK = 200         ; value for pwmSetClock function (for Orange PI it does not work)
+
+[values]
+TEMPERATURE_MAX = 80             ; max temperature -> PWM range RANGE_MAX
+TEMPERATURE_MIN = 55             ; min temperature -> PWM range RANGE_MIN
+TEMPERATURE_RANGE = 15           ; temperature range
+
+[files]
+PATH_TO_TEMP_DATA = /sys/devices/virtual/thermal/thermal_zone0/temp
+PATH_TO_LOG = /var/log/FanPiPWMld.log

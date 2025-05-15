@@ -1,0 +1,17 @@
+[Unit]
+Description=/usr/local/bin/fanpwmd
+ConditionPathExists=/usr/local/bin/fanpwmd
+After=network.target auditd.service
+
+[Service]
+Type=forking
+ExecStart=/usr/local/bin/fanpwmd
+TimeoutSec=0
+StandardOutput=tty
+RemainAfterExit=yes
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
+
