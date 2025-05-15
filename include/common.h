@@ -1,6 +1,4 @@
-//
-// Defines for assembly FanPiPWMld
-//
+#pragma once
 
 #define VERSION "1.0"
 #define APP_NAME "fanpwmd"
