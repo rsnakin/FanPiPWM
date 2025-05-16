@@ -92,6 +92,7 @@ FanPiPWM/
 │   ├── FanPiPWMld.cpp
 │   ├── FanMon.cpp
 │   ├── cfgini.cpp
+│   ├── Log.cpp
 │   ├── fanKbd.cpp
 │   ├── fanPWM.cpp
 │   ├── fanStrings.cpp
