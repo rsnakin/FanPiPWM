@@ -78,7 +78,7 @@ TEMPERATURE_RANGE = 15           ; temperature range
 
 [files]
 PATH_TO_TEMP_DATA = /sys/devices/virtual/thermal/thermal_zone0/temp
-PATH_TO_LOG = /var/log/FanPiPWMld.log
+PATH_TO_LOG = /var/log/FanPiPWMld.log ; path to log (optional value)
 ```
 
 ---
