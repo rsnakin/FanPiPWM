@@ -1,5 +1,5 @@
 [hardware]
-PIN = 1                          ; PIN number (see WiringPi/pins/pins.pdf)
+PIN = 1                          ; PIN number (see WiringPi/pins/pins.pdf or use `gpio readall` command)
 PWM_RANGE_MAX = 100              ; PWM max range
 PWM_RANGE_MIN = 75               ; PWM min range
 HARDWARE_PWM = true              ; Use hardware PWM RPi PWM-pins: (GPIO12(PIN: 26), GPIO18(PIN 1), GPIO13(PIN 23), GPIO19(PIN 24))
