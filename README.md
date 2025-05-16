@@ -45,6 +45,7 @@ Check status and monitor:
 systemctl status fan_pwm.service
 fanmon
 ```
+To exit the fanmon, press 'q'
 
 Stop the service:
 
