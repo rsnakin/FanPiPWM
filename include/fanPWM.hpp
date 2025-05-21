@@ -33,6 +33,8 @@ class fanPWM {
         unsigned int pwmClock;
         unsigned int pwmRangeMax;
         unsigned int pwmRangeMin;
+        long unsigned int tempMin;
+        long unsigned int tempMax;
         char pwmInitError[64];
 
         #ifdef ORANGEPI
@@ -43,6 +45,7 @@ class fanPWM {
 
         void setPIN(int pin);
         bool pwmInit();
+        int PWMmap(int currentTemp);
         bool setPWMValue(unsigned int value);
         bool changePWMValue(unsigned int value);
         bool PWMStop();

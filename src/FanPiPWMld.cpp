@@ -18,12 +18,6 @@
 #include "cfgini.hpp"
 #include "fanTemp.hpp"
 
-static int PWMmap(int x, int inMin, int inMax, int outMin, int outMax) {
-    if (x < inMin) return outMin;
-    if (x > inMax) return outMax;
-    return (x - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
-}
-
 int getUname(char* Uname) {
     FILE* pipe = popen("whoami", "r");
     if (!pipe) return -1;
@@ -117,8 +111,8 @@ int main() {
         return 0;
     }
 
-    int INIT_PWM_INTENSITY = 0;
-    config.getValue("%d", "hardware", "INIT_PWM_INTENSITY", &INIT_PWM_INTENSITY);
+    int initPWMIntensity = 0;
+    config.getValue("%d", "hardware", "INIT_PWM_INTENSITY", &initPWMIntensity);
 
     int tMax, tMin, tRange;
     if (!config.getValue("%d", "values", "TEMPERATURE_MAX", &tMax) ||
@@ -128,19 +122,19 @@ int main() {
         return 0;
     }
 
-    unsigned int TEMPERATURE_MAX = tMax * 1000;
-    unsigned int TEMPERATURE_MIN = tMin * 1000;
-    unsigned int TEMPERATURE_RANGE = tRange * 1000;
+    fPWM.tempMax = static_cast<long unsigned int>(tMax * 1000);
+    fPWM.tempMin = static_cast<long unsigned int>(tMin * 1000);
+    unsigned int tempRange = tRange * 1000;
 
-    char PATH_TO_TEMP_DATA[64];
-    if (!config.getValue("%s", "files", "PATH_TO_TEMP_DATA", PATH_TO_TEMP_DATA)) {
+    char path2TempData[64];
+    if (!config.getValue("%s", "files", "PATH_TO_TEMP_DATA", path2TempData)) {
         std::cerr << config.errorMsg << std::endl;
         return 0;
     }
 
-    char PATH_TO_LOG[64];
-    if (config.getValue("%s", "files", "PATH_TO_LOG", PATH_TO_LOG)) {
-        log.setLogPath(PATH_TO_LOG);
+    char path2Log[64];
+    if (config.getValue("%s", "files", "PATH_TO_LOG", path2Log)) {
+        log.setLogPath(path2Log);
     }
 
     if (config.getValue("%b", "hardware", "HARDWARE_PWM", &fPWM.hardwarePWM) && fPWM.hardwarePWM) {
@@ -175,25 +169,25 @@ int main() {
     }
     printf("\e[36mPWM_RANGE_MAX:\t\t\e[35m%d\e[0m\n", fPWM.pwmRangeMax);
     printf("\e[36mPWM_RANGE_MIN:\t\t\e[35m%d\e[0m\n", fPWM.pwmRangeMin);
-    printf("\e[36mINIT_PWM_INTENSITY:\t\e[35m%d\e[0m\n", INIT_PWM_INTENSITY);
-    printf("\e[36mTEMPERATURE_MAX:\t\e[35m%d\e[0m\n", TEMPERATURE_MAX);
-    printf("\e[36mTEMPERATURE_MIN:\t\e[35m%d\e[0m\n", TEMPERATURE_MIN);
-    printf("\e[36mTEMPERATURE_RANGE:\t\e[35m%d\e[0m\n", TEMPERATURE_RANGE);
-    printf("\e[36mPATH_TO_TEMP_DATA:\t\e[35m%s\e[0m\n", PATH_TO_TEMP_DATA);
+    printf("\e[36mINIT_PWM_INTENSITY:\t\e[35m%d\e[0m\n", initPWMIntensity);
+    printf("\e[36mTEMPERATURE_MAX:\t\e[35m%lu\e[0m\n", fPWM.tempMax);
+    printf("\e[36mTEMPERATURE_MIN:\t\e[35m%lu\e[0m\n", fPWM.tempMin);
+    printf("\e[36mTEMPERATURE_RANGE:\t\e[35m%d\e[0m\n", tempRange);
+    printf("\e[36mPATH_TO_TEMP_DATA:\t\e[35m%s\e[0m\n", path2TempData);
     if (log.On) {
-        printf("\e[36mPATH_TO_LOG:\t\t\e[35m%s\e[0m\n", PATH_TO_LOG);
+        printf("\e[36mPATH_TO_LOG:\t\t\e[35m%s\e[0m\n", path2Log);
         log.write("PWM_RANGE_MAX: %d", fPWM.pwmRangeMax);
         log.write("PWM_RANGE_MIN: %d", fPWM.pwmRangeMin);
-        log.write("INIT_PWM_INTENSITY: %d", INIT_PWM_INTENSITY);
-        log.write("TEMPERATURE_MAX: %d", TEMPERATURE_MAX);
-        log.write("TEMPERATURE_MIN: %d", TEMPERATURE_MIN);
-        log.write("TEMPERATURE_RANGE: %d", TEMPERATURE_RANGE);
-        log.write("PATH_TO_TEMP_DATA: %s", PATH_TO_TEMP_DATA);
+        log.write("INIT_PWM_INTENSITY: %d", initPWMIntensity);
+        log.write("TEMPERATURE_MAX: %d", fPWM.tempMax);
+        log.write("TEMPERATURE_MIN: %d", fPWM.tempMin);
+        log.write("TEMPERATURE_RANGE: %d", tempRange);
+        log.write("PATH_TO_TEMP_DATA: %s", path2TempData);
     }
 
     killOtherInstances(APP_NAME, 1000);
 
-    fanTemp fTemp(PATH_TO_TEMP_DATA);
+    fanTemp fTemp(path2TempData);
     if (fTemp.isError) {
         std::cerr << "Error: " << fTemp.errorMsg << "...\nExit..." << std::endl;
         return 1;
@@ -231,20 +225,21 @@ int main() {
                     usleep(1000000);
                     continue;
                 }
-                shmObj.pwmValue = PWMmap(shmObj.temperature, TEMPERATURE_MIN, TEMPERATURE_MAX, fPWM.pwmRangeMin, fPWM.pwmRangeMax);
+                //shmObj.pwmValue = PWMmap(shmObj.temperature, TEMPERATURE_MIN, TEMPERATURE_MAX, fPWM.pwmRangeMin, fPWM.pwmRangeMax);
+                shmObj.pwmValue = fPWM.PWMmap(shmObj.temperature);
                 shmObj.write();
 
-                if (shmObj.temperature >= TEMPERATURE_MIN && shmObj.pwmStopped) {
+                if (shmObj.temperature >= fPWM.tempMin && shmObj.pwmStopped) {
                     useconds_t initTimeout = 0;
-                    if (INIT_PWM_INTENSITY) {
-                        shmObj.pwmValue = std::min(100U, static_cast<unsigned int>(shmObj.pwmValue + INIT_PWM_INTENSITY));
+                    if (initPWMIntensity) {
+                        shmObj.pwmValue = std::min(100U, static_cast<unsigned int>(shmObj.pwmValue + initPWMIntensity));
                         initTimeout = 200000;
                     }
                     fPWM.setPWMValue(shmObj.pwmValue);
                     log.write("Fan is ON, temp: %f°C, PWMValue: %d", shmObj.temperature / 1000.0, shmObj.pwmValue);
                     shmObj.pwmStopped = false;
                     usleep(initTimeout);
-                } else if (shmObj.temperature >= (TEMPERATURE_MIN - TEMPERATURE_RANGE) && !shmObj.pwmStopped) {
+                } else if (shmObj.temperature >= (fPWM.tempMin - tempRange) && !shmObj.pwmStopped) {
                     fPWM.changePWMValue(shmObj.pwmValue);
                 } else if (!shmObj.pwmStopped) {
                     fPWM.PWMStop();

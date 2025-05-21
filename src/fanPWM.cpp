@@ -23,6 +23,12 @@ fanPWM::~fanPWM() {
     }
 }
 
+int fanPWM::PWMmap(int currentTemp) {
+    if (currentTemp < tempMin) return pwmRangeMin;
+    if (currentTemp > tempMax) return pwmRangeMax;
+    return (currentTemp - tempMin) * (pwmRangeMax - pwmRangeMin) / (tempMax - tempMin) + pwmRangeMin;
+}
+
 void fanPWM::setPIN(int pin) {
     pwmPIN = pin;
 #ifdef ORANGEPI
