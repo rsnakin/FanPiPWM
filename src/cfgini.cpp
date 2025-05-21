@@ -83,33 +83,6 @@ bool cfg::getValue(const char *pType, const char *section, const char *parameter
     return(false);
 }
 
-bool cfg::getValStr(const char *section, const char *parameter, char *valueStr) {
-    int i = 0;
-    size_t len = strlen((char *)section) + strlen((char *)parameter) + 4;
-    char *key = (char *)malloc(len);
-    if(!key) {
-        sprintf(errorMsg, "Error! memory not allocated (key).");
-        return(false);
-    }
-    if(strlen((char *)section)) {
-        sprintf(key, "[%s]:%s", section, parameter);
-    } else {
-        sprintf(key, "%s", parameter);
-    }
-
-    while(__iniContainer[i]) {
-        if(strcmp(key, __iniContainer[i]) == 0) {
-            sprintf(valueStr, "%s", __iniContainer[i + 1]);
-            free(key);
-            return(true);
-        }
-        i ++;
-    }
-    sprintf(errorMsg, "[%s] %s not found!", section, parameter);
-    free(key);
-    return(false);
-}
-
 cfg::~cfg() {
     free(__cfgFile);
     if(!__containerEmpty) {
