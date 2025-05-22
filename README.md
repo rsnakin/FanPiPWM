@@ -120,7 +120,7 @@ FanPiPWM/
 ## 📚 Dependencies
 
 - GCC or Clang
-- CMake ≥ 3.10
+- CMake ≥ 3.18
 - systemd
 - [wiringPi](https://github.com/WiringPi/WiringPi.git) — for Raspberry Pi
 - [wiringOP](https://github.com/orangepi-xunlong/wiringOP.git) — for Orange Pi
