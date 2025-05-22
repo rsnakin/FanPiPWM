@@ -225,7 +225,6 @@ int main() {
                     usleep(1000000);
                     continue;
                 }
-                //shmObj.pwmValue = PWMmap(shmObj.temperature, TEMPERATURE_MIN, TEMPERATURE_MAX, fPWM.pwmRangeMin, fPWM.pwmRangeMax);
                 shmObj.pwmValue = fPWM.PWMmap(shmObj.temperature);
                 shmObj.write();
 
