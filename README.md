@@ -122,8 +122,8 @@ FanPiPWM/
 - GCC or Clang
 - CMake ≥ 3.18
 - systemd
-- [wiringPi](https://github.com/WiringPi) — for Raspberry Pi
-- [wiringOP](https://github.com/orangepi-xunlong) — for Orange Pi
+- [wiringPi](https://github.com/WiringPi/WiringPi) — for Raspberry Pi
+- [wiringOP](https://github.com/orangepi-xunlong/wiringOP) — for Orange Pi
 
 ---
 
