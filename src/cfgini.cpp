@@ -53,13 +53,13 @@ cfg::cfg(const char *cfgFile) {
 
 bool cfg::getValue(const char *pType, const char *section, const char *parameter, ...) {
     int i = 0;
-    size_t len = strlen((char *)section) + strlen((char *)parameter) + 4;
-    char *key = (char *)malloc(len);
+    size_t len = strlen(const_cast<char *>(section)) + strlen(const_cast<char *>(parameter)) + 4;
+    char *key = static_cast<char *>(malloc(len));
     if(!key) {
         sprintf(errorMsg, "Error! memory not allocated (key).");
         return(false);
     }
-    if(strlen((char *)section)) {
+    if(strlen(const_cast<char *>(section))) {
         sprintf(key, "[%s]:%s", section, parameter);
     } else {
         sprintf(key, "%s", parameter);
@@ -81,7 +81,7 @@ bool cfg::getValue(const char *pType, const char *section, const char *parameter
                 *value = strtoul(__iniContainer[i + 1], nullptr, 10);
             } else if(strcmp(pType, "%u") == 0) {
                 unsigned int *value = va_arg(aPtr, unsigned int *);
-                *value = (unsigned int)strtoul(__iniContainer[i + 1], nullptr, 10);
+                *value = static_cast<unsigned int>(strtoul(__iniContainer[i + 1], nullptr, 10));
             } else if(strcmp(pType, "%b") == 0) {
                 bool *value = va_arg(aPtr, bool *);
                 if(strcmp(__iniContainer[i + 1], "true")) {
@@ -127,14 +127,14 @@ bool cfg::readCFG() {
     int is = 0;
     bool is_section = false;
 
-    __iniContainer = (char **)malloc(sizeof(char *) * 2);
+    __iniContainer = static_cast<char **>(malloc(sizeof(char *) * 2));
     if (!__iniContainer) {
         sprintf(errorMsg, "Error! memory not allocated (__iniContainer).\n");
         return false;
     }
 
     for (int i = 0; i < 2; i++) {
-        __iniContainer[i] = (char *)malloc(recordSize);
+        __iniContainer[i] = static_cast<char *>(malloc(recordSize));
         if (!__iniContainer[i]) {
             sprintf(errorMsg, "Error! memory not allocated (__iniContainer[%d]).", i);
             return false;
@@ -208,7 +208,7 @@ bool cfg::readCFG() {
             snprintf(__iniContainer[itemNum], recordSize, "%s", value);
             itemNum++;
 
-            char **newContainer = (char **)realloc(__iniContainer, sizeof(char *) * (itemNum + 2));
+            char **newContainer = static_cast<char **>(realloc(__iniContainer, sizeof(char *) * (itemNum + 2)));
             if (!newContainer) {
                 sprintf(errorMsg, "Error reallocating memory (__iniContainer).\n");
                 return false;
@@ -216,7 +216,7 @@ bool cfg::readCFG() {
             __iniContainer = newContainer;
 
             for (int k = 0; k < 2; ++k) {
-                __iniContainer[itemNum + k] = (char *)malloc(recordSize);
+                __iniContainer[itemNum + k] = static_cast<char *>(malloc(recordSize));
                 if (!__iniContainer[itemNum + k]) {
                     sprintf(errorMsg, "Error! memory not allocated (__iniContainer[%d]).", itemNum + k);
                     return false;
